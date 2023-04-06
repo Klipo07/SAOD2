@@ -8,15 +8,17 @@
 #include "../lib/hashtab.h"
 #include "../lib/header.h"
 
-struct listnode *hashtab[Hashtab_Size];
-char words[MaxKeys][MaxKeyLenght];
 
 int main() {
-  struct bstree *tree;
-  struct listnode *hash;
+  struct listnode *hashtab_KR[Hashtab_Size];
+  struct listnode *hashtab_Add[Hashtab_Size];
 
-  double time_bstree = 0.0, time_hash = 0.0;
+  char words[MaxKeys][MaxKeyLenght];
+
+  struct listnode *node_KR, *node_Add;
+  double time_KR = 0.0, time_Add = 0.0;
   clock_t begin, end;
+
   FILE *file = fopen("parol.txt", "r");
   if (!file) {
     return 1;
@@ -27,34 +29,31 @@ int main() {
   }
   fclose(file);
 
-  printf("tree\t\thash\t\t\tkey\t\tkey_tree\t\tkey_hash\tvalue\n");
-  hashtab_init(hashtab);
-  hashtab_add(hashtab, words[0], 0);
-  tree = bstree_create(words[0], 0);
-  for (int i = 1; i < MaxKeys; i++) {
+  printf("#\t   KR\t\t Add \tcolizii_KR\t colizii_Add\n");
+  hashtab_init(hashtab_KR);
+  hashtab_init(hashtab_Add);
+
+  for (int i = 0; i < MaxKeys; i++) {
+    hashtab_add(hashtab_KR, words[i], i);
+    hashtab_add_Add(hashtab_Add, words[i], i);
     if ((i + 1) % 10000 == 0) {
-      char *rand_key = words[getrand(0, i)];
+      char *word = words[0]; // words[getrand(0, i)];
       // bstree
       begin = clock();
-      bstree_add(tree, rand_key, i);
+      node_KR = hashtab_lookup(hashtab_KR, word);
       end = clock();
-      time_bstree = (double)(end - begin) / CLOCKS_PER_SEC;
+      time_KR = (double)(end - begin) / CLOCKS_PER_SEC;
 
       // hastab
       begin = clock();
-      hashtab_add(hashtab, rand_key, i);
+      node_Add = hashtab_lookup_Add(hashtab_Add, word);
       end = clock();
-      time_hash = (double)(end - begin) / CLOCKS_PER_SEC;
+      time_Add = (double)(end - begin) / CLOCKS_PER_SEC;
 
-      printf("%f\t%f %20.25s %20.25s %20.25s\t\t%d\n", time_bstree, time_hash,
-             rand_key);
-    }
-    else
-    {
-      bstree_add(tree, words[i], i);
-      hashtab_add(hashtab, words[i], i);
+      printf("%d\t %f\t%f\t %d \t%d\n", i + 1, time_KR, time_Add, get_collisions(hashtab_KR), get_collisions(hashtab_Add));
     }
   }
-
+  free_table(hashtab_KR);
+  free_table(hashtab_Add);
   return 0;
 }
